@@ -16,7 +16,7 @@ const Index = () => {
   const featuredProducts = products.filter(product => product.featured);
   const newProducts = products.filter(product => product.new);
 
-  // Intersection Observer for animations
+  // Improved Intersection Observer for animations
   useEffect(() => {
     const options = {
       root: null,
@@ -27,8 +27,12 @@ const Index = () => {
     const handleIntersect = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
+          // Add animation class only when element is visible
           entry.target.classList.add('animate-fade-in');
-          observer.unobserve(entry.target);
+          // Don't unobserve hero section elements to allow re-animation when returning to view
+          if (!entry.target.classList.contains('hero-element')) {
+            observer.unobserve(entry.target);
+          }
         }
       });
     };
@@ -37,6 +41,7 @@ const Index = () => {
     
     const elements = document.querySelectorAll('.fade-in-section');
     elements.forEach(el => {
+      // Start with opacity 0 but no animation yet
       el.classList.add('opacity-0');
       observer.observe(el);
     });
@@ -55,27 +60,27 @@ const Index = () => {
         <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3')] bg-cover bg-center bg-no-repeat"></div>
         
         <div className="container-padding relative mx-auto flex flex-col items-center justify-center text-center">
-          <div className="inline-block animate-fade-in rounded-full bg-brand-red/10 px-4 py-1.5 text-sm font-medium text-brand-red">
+          <div className="hero-element fade-in-section inline-block rounded-full bg-brand-red/10 px-4 py-1.5 text-sm font-medium text-brand-red">
             Premium Quality
           </div>
           
-          <h1 className="mt-6 animate-fade-in text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="hero-element fade-in-section mt-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl" style={{ transitionDelay: '100ms' }}>
             Elevate Your Style <br /> With <span className="text-brand-red">DREAM</span>
           </h1>
           
-          <p className="mt-6 max-w-lg animate-fade-in text-muted-foreground md:text-lg">
+          <p className="hero-element fade-in-section mt-6 max-w-lg text-muted-foreground md:text-lg" style={{ transitionDelay: '200ms' }}>
             Discover our premium collection of clothing designed for those who appreciate elegance and sophistication.
           </p>
           
           <div className="mt-10 flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
             <Link to="/products">
-              <AnimatedButton variant="primary" size="lg" className="animate-fade-in">
+              <AnimatedButton variant="primary" size="lg" className="hero-element fade-in-section" style={{ transitionDelay: '300ms' }}>
                 Shop Now
                 <ArrowRight size={16} className="ml-2" />
               </AnimatedButton>
             </Link>
             <Link to="/categories">
-              <AnimatedButton variant="outline" size="lg" className="animate-fade-in">
+              <AnimatedButton variant="outline" size="lg" className="hero-element fade-in-section" style={{ transitionDelay: '400ms' }}>
                 Explore Categories
               </AnimatedButton>
             </Link>
@@ -90,16 +95,16 @@ const Index = () => {
       </section>
       
       {/* Featured Products */}
-      <section ref={featuredRef} className="fade-in-section py-16 md:py-24">
+      <section ref={featuredRef} className="py-16 md:py-24">
         <div className="container-padding mx-auto">
-          <div className="mb-12 text-center">
+          <div className="mb-12 text-center fade-in-section">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Featured Collection</h2>
             <p className="mt-4 text-muted-foreground">Discover our most popular premium pieces</p>
           </div>
           
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredProducts.map(product => (
-              <div key={product.id} className="fade-in-section">
+            {featuredProducts.map((product, index) => (
+              <div key={product.id} className="fade-in-section" style={{ transitionDelay: `${index * 100}ms` }}>
                 <ProductCard 
                   product={product}
                   onAddToCart={(product) => addItem(product)}
@@ -108,7 +113,7 @@ const Index = () => {
             ))}
           </div>
           
-          <div className="mt-12 text-center">
+          <div className="mt-12 text-center fade-in-section">
             <Link to="/products">
               <AnimatedButton variant="secondary">
                 View All Products
@@ -143,14 +148,14 @@ const Index = () => {
       {/* New Arrivals */}
       <section className="fade-in-section py-16 md:py-24">
         <div className="container-padding mx-auto">
-          <div className="mb-12 text-center">
+          <div className="mb-12 text-center fade-in-section">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">New Arrivals</h2>
             <p className="mt-4 text-muted-foreground">The latest additions to our premium collection</p>
           </div>
           
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {newProducts.map(product => (
-              <div key={product.id} className="fade-in-section">
+            {newProducts.map((product, index) => (
+              <div key={product.id} className="fade-in-section" style={{ transitionDelay: `${index * 100}ms` }}>
                 <ProductCard 
                   product={product}
                   onAddToCart={(product) => addItem(product)}
@@ -159,7 +164,7 @@ const Index = () => {
             ))}
           </div>
           
-          <div className="mt-12 text-center">
+          <div className="mt-12 text-center fade-in-section">
             <Link to="/products">
               <AnimatedButton variant="secondary">
                 View All New Arrivals
@@ -173,41 +178,46 @@ const Index = () => {
       {/* Features */}
       <section className="fade-in-section bg-secondary/50 py-16 md:py-24">
         <div className="container-padding mx-auto">
-          <div className="mb-12 text-center">
+          <div className="mb-12 text-center fade-in-section">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why Choose DREAM?</h2>
             <p className="mt-4 text-muted-foreground">We're committed to quality, sustainability, and exceptional service</p>
           </div>
           
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="fade-in-section rounded-lg bg-white p-8 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-red/10 text-brand-red">
-                <Award size={24} />
+            {[
+              {
+                icon: <Award size={24} />,
+                title: "Premium Quality",
+                description: "We use only the finest materials sourced from sustainable suppliers to create garments that look and feel exceptional.",
+                color: "bg-brand-red/10 text-brand-red"
+              },
+              {
+                icon: <Truck size={24} />,
+                title: "Fast Delivery",
+                description: "Enjoy free shipping on all orders over $100, with express delivery options available for those who can't wait.",
+                color: "bg-brand-green/10 text-brand-green"
+              },
+              {
+                icon: <TrendingUp size={24} />,
+                title: "Latest Trends",
+                description: "Our designers stay ahead of global fashion trends to bring you pieces that are both timeless and contemporary.",
+                color: "bg-brand-red/10 text-brand-red"
+              }
+            ].map((feature, index) => (
+              <div 
+                key={feature.title}
+                className="fade-in-section rounded-lg bg-white p-8 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-md"
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
+                <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${feature.color}`}>
+                  {feature.icon}
+                </div>
+                <h3 className="mb-3 text-xl font-medium">{feature.title}</h3>
+                <p className="text-muted-foreground">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="mb-3 text-xl font-medium">Premium Quality</h3>
-              <p className="text-muted-foreground">
-                We use only the finest materials sourced from sustainable suppliers to create garments that look and feel exceptional.
-              </p>
-            </div>
-            
-            <div className="fade-in-section rounded-lg bg-white p-8 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
-                <Truck size={24} />
-              </div>
-              <h3 className="mb-3 text-xl font-medium">Fast Delivery</h3>
-              <p className="text-muted-foreground">
-                Enjoy free shipping on all orders over $100, with express delivery options available for those who can't wait.
-              </p>
-            </div>
-            
-            <div className="fade-in-section rounded-lg bg-white p-8 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-red/10 text-brand-red">
-                <TrendingUp size={24} />
-              </div>
-              <h3 className="mb-3 text-xl font-medium">Latest Trends</h3>
-              <p className="text-muted-foreground">
-                Our designers stay ahead of global fashion trends to bring you pieces that are both timeless and contemporary.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -216,7 +226,7 @@ const Index = () => {
       <section ref={aboutRef} className="fade-in-section py-16 md:py-24">
         <div className="container-padding mx-auto">
           <div className="flex flex-col gap-12 lg:flex-row lg:items-center">
-            <div className="flex-1">
+            <div className="flex-1 fade-in-section">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Our Story</h2>
               <p className="mt-6 text-muted-foreground">
                 DREAM was born from a passion for quality and design. Founded in 2020, our mission
@@ -233,7 +243,7 @@ const Index = () => {
                 </AnimatedButton>
               </Link>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 fade-in-section" style={{ transitionDelay: '100ms' }}>
               <div className="relative h-[400px] overflow-hidden rounded-lg shadow-xl">
                 <img 
                   src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" 
