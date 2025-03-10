@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -20,6 +20,46 @@ const Categories = () => {
     queryKey: ['categories'],
     queryFn: fetchCategories
   });
+  
+  // Reference for the categories section
+  const categoriesRef = useRef<HTMLDivElement>(null);
+
+  // Implement proper intersection observer for animations
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const handleIntersect = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Add animation class only when element is visible
+          entry.target.classList.add('animate-fade-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, options);
+    
+    // Only observe elements after data is loaded
+    if (data && !isLoading) {
+      const elements = document.querySelectorAll('.fade-in-section');
+      elements.forEach(el => {
+        // Start with opacity 0 but no animation yet
+        el.classList.add('opacity-0');
+        observer.observe(el);
+      });
+    }
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [data, isLoading]);
 
   if (isLoading) {
     return (
@@ -53,21 +93,24 @@ const Categories = () => {
       <Navbar />
       
       <main className="flex-1 mt-16">
-        <section className="py-16 md:py-24">
+        <section className="py-16 md:py-24" ref={categoriesRef}>
           <div className="container-padding mx-auto">
-            <div className="mb-12 text-center">
+            <div className="mb-12 text-center fade-in-section">
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Categories</h1>
               <p className="mt-4 text-muted-foreground">Browse our premium clothing by category</p>
             </div>
             
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {data?.filter(category => category.id !== 'all').map((category) => (
+              {data?.filter(category => category.id !== 'all').map((category, index) => (
                 <Link 
                   key={category.id} 
                   to={`/products?category=${category.id}`}
                   className="group"
                 >
-                  <div className="fade-in-section overflow-hidden rounded-lg bg-secondary/80 p-8 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+                  <div 
+                    className="fade-in-section overflow-hidden rounded-lg bg-secondary/80 p-8 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                    style={{ transitionDelay: `${index * 100}ms` }}
+                  >
                     <h2 className="mb-4 text-2xl font-semibold">{category.name}</h2>
                     <p className="mb-6 text-muted-foreground">
                       Explore our exclusive {category.name.toLowerCase()} collection
