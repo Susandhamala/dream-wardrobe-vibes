@@ -7,6 +7,8 @@ interface AnimatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
   fullWidth?: boolean;
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }
 
 const AnimatedButton = ({
@@ -15,10 +17,14 @@ const AnimatedButton = ({
   children,
   className,
   fullWidth = false,
+  icon,
+  iconPosition = 'left',
   ...props
 }: AnimatedButtonProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
+  let rippleCount = 0;
 
   const getVariantClasses = () => {
     switch (variant) {
@@ -46,10 +52,30 @@ const AnimatedButton = ({
     }
   };
 
+  const addRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const buttonRect = e.currentTarget.getBoundingClientRect();
+    const size = Math.max(buttonRect.width, buttonRect.height);
+    
+    const x = e.clientX - buttonRect.left - size / 2;
+    const y = e.clientY - buttonRect.top - size / 2;
+    
+    const newRipple = {
+      x,
+      y,
+      id: rippleCount++
+    };
+    
+    setRipples([...ripples, newRipple]);
+    
+    setTimeout(() => {
+      setRipples(prevRipples => prevRipples.filter(ripple => ripple.id !== newRipple.id));
+    }, 600);
+  };
+
   return (
     <button
       className={cn(
-        'relative inline-flex items-center justify-center rounded-md font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'relative inline-flex items-center justify-center rounded-md font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 overflow-hidden',
         getVariantClasses(),
         getSizeClasses(),
         fullWidth && 'w-full',
@@ -64,9 +90,31 @@ const AnimatedButton = ({
       }}
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
+      onClick={addRipple}
       {...props}
     >
-      <span className="relative z-10">{children}</span>
+      <span className={cn(
+        "relative z-10 inline-flex items-center justify-center gap-2",
+        iconPosition === 'right' ? 'flex-row-reverse' : 'flex-row'
+      )}>
+        {icon && <span className="animate-fade-in">{icon}</span>}
+        {children}
+      </span>
+      
+      {ripples.map(ripple => (
+        <span
+          key={ripple.id}
+          className="absolute block rounded-full bg-white/30 animate-scale-in opacity-0"
+          style={{
+            left: ripple.x,
+            top: ripple.y,
+            width: '200%',
+            height: '200%',
+            animation: 'scale-in 0.6s linear forwards, fade-out 0.6s linear forwards'
+          }}
+        />
+      ))}
+      
       <span
         className={cn(
           'absolute inset-0 transform-gpu rounded-md opacity-0 transition-opacity',
